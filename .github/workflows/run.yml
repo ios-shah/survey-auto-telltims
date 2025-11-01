@@ -1,39 +1,53 @@
-name: Wikipedia Fetcher
+name: Telltims Survey Automation
 
+# This workflow allows you to manually trigger it from the GitHub Actions tab.
 on:
-  workflow_dispatch: # Manual trigger from Actions tab
-  schedule:
-    - cron: '0 20 * * *'  # every day 2 PM CDT (20:00 UTC)
-
-permissions:
-  contents: write  # ✅ allows committing changes back to repo
+  workflow_dispatch:
+    inputs:
+      survey_code:
+        description: 'The receipt survey code (e.g., 1234567890)'
+        required: true
+        default: '1234567890' # Default value for testing
 
 jobs:
-  run:
+  run_survey_automation:
+    # Use a container with Node.js pre-installed
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repo
+      - name: Checkout repository code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
-      - name: Install Playwright
+      - name: Install Node dependencies (Puppeteer)
+        run: npm install
+
+      - name: Set Survey Code Environment Variable
+        # Pass the input code as an environment variable to the Node script
+        run: echo "SURVEY_CODE=${{ github.event.inputs.survey_code }}" >> $GITHUB_ENV
+
+      - name: Run Survey Automation Script
+        id: survey_run
+        # Execute the Node.js script and capture its JSON output to results.json
+        run: node survey-automation.js > results.json
+
+      - name: Parse and Display Results
         run: |
-          npm init -y
-          npm install playwright
-          npx playwright install --with-deps
-
-      - name: Run script
-        run: node script.js
-
-      - name: Commit and push result
-        run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git add index.html
-          git commit -m "Update Wikipedia data" || echo "No changes to commit"
-          git push
+          # Use jq (pre-installed tool) to parse the JSON output
+          PROMO_CODE=$(jq -r '.promoCode' results.json)
+          SUCCESS=$(jq -r '.success' results.json)
+          
+          # Display results prominently in the workflow summary
+          echo "## 🚀 Automation Run Status" >> $GITHUB_STEP_SUMMARY
+          echo "Status: **$SUCCESS**" >> $GITHUB_STEP_SUMMARY
+          echo "Promo Code: **$PROMO_CODE**" >> $GITHUB_STEP_SUMMARY
+          
+          # Output the full log for easy copying to the web interface
+          echo "---"
+          echo "Full Automation Logs (Copy this block for the Web Panel):"
+          echo "Promo Code: $PROMO_CODE"
+          cat results.json | jq -r '.logs[]'
