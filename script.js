@@ -3,54 +3,40 @@ const fs = require("fs");
 const { chromium } = require("playwright");
 
 (async () => {
-  const surveyURL = "https://rbixm.qualtrics.com/jfe/form/YOUR_FORM_ID";
-  const couponCode = "A1B2C3D4E5"; // optionally make dynamic later
-
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 
-  console.log("Opening survey...");
-  await page.goto(surveyURL, { waitUntil: "load" });
+  console.log("Opening Wikipedia...");
+  await page.goto("https://en.wikipedia.org/wiki/Canada", { waitUntil: "load" });
 
-  // Example: fill the first field with coupon
-  const input = await page.$('input[id="QR~QID9"]');
-  if (input) {
-    await input.type(couponCode);
-  }
+  // Extract the first paragraph
+  const firstParagraph = await page.$eval("p", (el) => el.innerText);
 
-  // ... here you could paste the rest of your Tampermonkey automation logic,
-  // adapted for Playwright (clicking labels, next buttons, etc.)
-
-  // For demonstration, pretend we got this code from survey:
-  const promoCode = "TT12345";
-
-  // --- Save promo code to index.html ---
+  // Create a simple HTML page
   const html = `
   <!DOCTYPE html>
   <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Telltims Promo Code</title>
+    <title>Wikipedia Fetcher</title>
     <style>
-      body { font-family: Arial, sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#fafafa; }
-      .card { background:white; padding:30px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.1); text-align:center; }
-      h1 { color:#333; margin-bottom:10px; }
-      .code { font-size:2rem; color:#d32f2f; margin-top:10px; font-weight:bold; }
+      body { font-family: system-ui, sans-serif; max-width: 700px; margin: 80px auto; line-height: 1.6; }
+      h1 { color: #2a4d9b; }
+      p { font-size: 1.1rem; }
+      .time { color: gray; font-size: 0.9rem; margin-top: 20px; }
     </style>
   </head>
   <body>
-    <div class="card">
-      <h1>Your Telltims Promo Code</h1>
-      <div class="code">${promoCode}</div>
-      <p>Last updated: ${new Date().toLocaleString("en-CA", { timeZone: "America/Chicago" })}</p>
-    </div>
+    <h1>Wikipedia Summary: Canada</h1>
+    <p>${firstParagraph}</p>
+    <div class="time">Last updated: ${new Date().toLocaleString("en-CA", { timeZone: "America/Chicago" })}</div>
   </body>
   </html>
   `;
 
   fs.writeFileSync("index.html", html);
-  console.log("✅ Promo code saved to index.html");
+  console.log("✅ Wikipedia data saved to index.html");
 
   await browser.close();
 })();
