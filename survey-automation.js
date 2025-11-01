@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 // Get survey code from environment variable (set by GitHub Action)
 const SURVEY_CODE = process.env.SURVEY_CODE;
-const SURVEY_URL = '[https://rbixm.qualtrics.com/jfe/form/](https://rbixm.qualtrics.com/jfe/form/)';
+const SURVEY_URL = 'https://rbixm.qualtrics.com/jfe/form/SV_3lMYn8fpUtkEu7c?CountryCode=CAN&InviteType=Coupon&SC=21';
 
 /**
  * Executes the entire survey automation process using a headless browser.
