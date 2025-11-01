@@ -1,0 +1,12 @@
+{
+  "name": "survey-auto-telltims",
+  "version": "1.0.0",
+  "description": "Automates Telltims survey using Puppeteer on GitHub Actions.",
+  "main": "survey-automation.js",
+  "scripts": {
+    "start": "node survey-automation.js"
+  },
+  "dependencies": {
+    "puppeteer": "^23.5.0"
+  }
+}
